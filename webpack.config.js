@@ -19,6 +19,22 @@ module.exports =  {
   module: {
     rules: [
       {
+        test: /\.jsx?$/,
+        use: [{
+          loader: 'babel-loader',
+          options: {
+            presets: [
+              '@babel/preset-env',  // 转化JS 语法到ES5
+              '@babel/preset-react' // 转化为JSX
+            ],
+            plugins: [
+              ['@babel/plugin-proposal-decorators', { legacy: true }], // 处理实现属性装饰器
+              ['@babel/plugin-proposal-class-properties', { loose: true }]
+            ]
+          }
+        }]
+      },
+      {
         test: /\.txt$/,
         use: ['raw-loader']
       },
@@ -40,7 +56,7 @@ module.exports =  {
       {
         test: /\.html$/i,
         use: ['html-loader']
-      }
+      },
     ]
   },
   plugins: [
