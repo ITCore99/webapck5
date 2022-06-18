@@ -1,0 +1,7 @@
+{
+  "ignore": ["node_modules", "dist"],
+  "watch": [
+    "webpack.config.js"
+  ],
+  "exec": "npm run dev"
+}
