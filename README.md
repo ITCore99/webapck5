@@ -37,7 +37,7 @@
 ## sourceMap 是为了解决开发代码与实际打包代码不一致当代码出现错误是帮我定位到开发代码的一种技术
 
 - eval 使用eval包裹模块代码进行执行
-- source-map 产生sourcemap 暂时的信息最全包括行列信息 缺点是慢 需要生成文件
+- source-map 产生sourcemap 展示的信息最全包括行列信息 缺点是慢 需要生成文件
 - cheap 不包含列信息 也不包含原始代码到loader编译之后代码的sourcemap映射
 - module 包含原始代码到loader编译之后代码的sourcemap映射(比如 jsx to js, babel的sourcemap) 否则无法定位源文件
 - inline 将map文件作为DataUrl嵌入，不单独生成.map文件
@@ -56,3 +56,62 @@
 
 1、打包的时候使用webpack.sourceMapDevToolPlugin插件动态的想打包好的文件中插入map映射
 2、webpack打包仍然生成sourceMap但是将map文件挑出来放到本地服务器，将不含有map文件的部署到服务器，借助第三方软件 例如fiddler 将浏览器对应map文件请求拦截到本地服务器就可以实现本地sourcemap调试
+
+## 打包第三方类库方式
+
+- 1、直接通过import或者require全量引入 痛点: 比较麻烦 每次都需要引入
+- 2、使用插件引入 (下面例子中的 "_" 函数会自动加到当前模块的上下文, 无需显示声明) 用途是如果一个库好多模块都需要使用到这样我们就可以全局的注入(注册到了打包之后的函数上下中，不会挂载到window上面) 痛点: 无法在全局中使用
+
+```js
+{
+  new Webpack.providePlugin({
+    _: 'lodash'
+  })
+}
+```
+
+- 3、expose-loader引入 添加对象到全局的对象上 （不需要任何的插件配合，只要将下面的代码添加到所有loader之前）详细传送门: <https://www.webpackjs.com/loaders/expose-loader/>
+
+```js
+
+ {
+   // 注意需要在index.js引入才行
+    test: require.resolve('jquery'),
+    use: [{
+      loader: 'expose-loader',
+      options: {
+        exposes: ['$'],
+      },
+    }]
+  },
+```
+
+- 4、使用存在externals CDN引入 痛点 需要手动的去插入cdn脚本
+
+```js
+{
+  externals: { // 存在externals 中的包将不会进行打包 不管代码中有没有使用到都会引入加载
+   'lodash': '_'
+  },
+}
+```
+
+- 5、html-webpack-externals-plugin 按需引入(只有被require了之后才会加载 )同时自动插入脚本
+
+```js
+{
+  new HtmlWebpackExternalsPlugin({
+    externals: [
+      {
+        module: 'lodash',
+        entry: 'https://cdn.bootcdn.net/ajax/libs/lodash.js/4.17.21/lodash.min.js',
+        global: '_'
+      }
+    ]
+  }),
+}
+```
+
+## Webpack.DefinePlugin 允许创建一个在编译时可以配置的全局常量 文档传送门: <https://www.webpackjs.com/plugins/define-plugin/>
+
+## 生成环境配置和优化
