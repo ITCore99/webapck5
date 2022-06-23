@@ -2,14 +2,22 @@ const { resolve }  =  require('path')
 const HtmlWebpackPlugin = require('html-webpack-plugin')
 const ESLintPlugin = require('eslint-webpack-plugin')
 const HtmlWebpackExternalsPlugin = require('html-webpack-externals-plugin')
+const MiniCssExtractPlugin = require('mini-css-extract-plugin')
 const Webpack = require('webpack')
+const CopyWebpackPlugin = require('copy-webpack-plugin')
 console.log('env=>', process.env.NODE_ENV)
 module.exports =  {
   mode: process.env.NODE_ENV,
-  entry: resolve(__dirname, 'src/index.js'),
+  entry: {
+    main: resolve(__dirname, 'src/index.js')
+  },
+  // entry:  resolve(__dirname, 'src/index.js'),
   output: {
     path: resolve(__dirname, 'dist'),
-    filename: 'bundle.js'
+    // 入口代码块的名称配置项
+    filename: 'js/[name].[hash:10].js',
+    // 非入口代码块的名称配置项 非入口代码块的来源 1、代码分割 vendor common 2、懒加载 import方法加载
+    chunkFilename: 'js/[name].[hash:10].js'
   },
   devServer: {
     static: {
@@ -71,14 +79,17 @@ module.exports =  {
       },
       {
         test: /\.css$/,
-        use: ['style-loader', 'css-loader']
+        use: [
+          MiniCssExtractPlugin.loader,
+          // 'style-loader',
+          'css-loader']
       },
       {
         test: /\.(png|jpg|jpeg)$/i,
         use: [{
           loader: 'file-loader',
           options: {
-            name: '[hash:10].[ext]',
+            name: 'images/[hash:10].[ext]',
             esModule: false
           }
         }],
@@ -92,14 +103,20 @@ module.exports =  {
   },
   devtool: 'cheap-module-source-map',
   plugins: [
+    new MiniCssExtractPlugin({ // 现将所有的css文件进行收集起来 再在plugin中对css 进行分开生成文件并将资源
+      filename: 'css/[name]-[contenthash:8].css'
+    }),
     new ESLintPlugin({
       exclude: ['node-modules', 'dist'],
       extensions: ['js'],
       files: resolve(__dirname, 'src'),
       fix: true
     }),
+    // webpack 在打包之后会把所有打包资源放到一个叫做assets对象上 htmlWebpackPlugin会把遍历assets中的资源插入到index.html
     new HtmlWebpackPlugin({
-      template: './src/index.html'
+      template: './src/index.html',
+      chunks: ['main'],
+      filename:'index.html',
     }),
     new HtmlWebpackExternalsPlugin({
       externals: [
@@ -117,6 +134,11 @@ module.exports =  {
       DEVELOPMENT: JSON.stringify(process.env.NODE_ENV === 'development'),
       VERSION: '2.0',
       EXPRESS: '1+2'
+    }),
+    new CopyWebpackPlugin({
+      patterns: [
+        { from: resolve(__dirname, 'doc'), to: resolve(__dirname, 'doc') },
+      ],
     })
   ]
 }

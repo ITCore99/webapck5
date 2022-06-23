@@ -114,4 +114,20 @@
 
 ## Webpack.DefinePlugin 允许创建一个在编译时可以配置的全局常量 文档传送门: <https://www.webpackjs.com/plugins/define-plugin/>
 
+## babel中有了ployfill 为什么还有babel runtime？
+
+- 因为引入babel polyfill 有一个缺点就是会导致全局环境和全局变量污染的问题（ployfill是通过添加或者重新全局函数和全局对象的prototype属性的方式来进行对不同的浏览器进行兼容）
+- babel-runtime 正是为了解决这个问题而引申出来的包。babel-runtime更像是一种按需加载的实现，比如你哪里需要使用promise 只要在这个文件头部require Promise from "babel-runtime/core-js/promsie" 就行了. 不会污染全局变量因为引入模块之后就是模块局部变量。 配合插件@babel/plugin-transform-runtime 启用这个插件之后会自动帮我们引入babel-runtime下的工具函数
+
+## glob文件匹配模式 *可以匹配任意字符，除了路径分隔，符号 ** 可以匹配任意字符包括路径分隔符
+
+## webpack.devServer 和 webpack-dev-middleware
+
+- webpack-dev-server的好处是相对简单，直接安装命令即可
+- 而使用webpack-dev-middleware的好处是可以在既有的Express代码基础上快速添加webpack-dev-server的功能，同时利用Express来根据需要添加更多功能。如mock服务、代理API请求等。
+
+## html-webpack-plugin是如何知道需要将哪些文件需要插入到index.html中的？
+
+- webpack在打包的之后会将所有生成的资源放到一个assets对象上(通过插件emitFile方法添加) 而此插件会遍历上面的文件将上面的文件全部插入到html中 由此来实现。
+
 ## 生成环境配置和优化
