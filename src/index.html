@@ -13,11 +13,20 @@
   <div id="root"></div>
   hello world
   <img src="./images/1.jpeg" alt="">
+  <input type="text" placeholder="请输入placeholder">
   <script>
     setTimeout(() => {
       // console.log('我是全局jquery html',$)
       // console.log('我是全局lodash',$, _)
     }, 2000)
+  </script>
+  <script>
+    let documentEle = document.documentElement
+    function setRemUnit() {
+      documentEle.style.fontSize = documentEle.clientWidth / 10 + 'px'
+    }
+    setRemUnit()
+    window.addEventListener('resize', setRemUnit)
   </script>
   
 </body>

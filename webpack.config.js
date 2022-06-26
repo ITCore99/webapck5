@@ -3,9 +3,13 @@ const HtmlWebpackPlugin = require('html-webpack-plugin')
 const ESLintPlugin = require('eslint-webpack-plugin')
 const HtmlWebpackExternalsPlugin = require('html-webpack-externals-plugin')
 const MiniCssExtractPlugin = require('mini-css-extract-plugin')
+const CssMinimizerPlugin = require('css-minimizer-webpack-plugin') // 压缩和优化css
+const TerserPlugin = require('terser-webpack-plugin') // 进行对js的压缩
 const Webpack = require('webpack')
 const CopyWebpackPlugin = require('copy-webpack-plugin')
 console.log('env=>', process.env.NODE_ENV)
+const isPord = process.env.NODE_ENV === 'production'
+console.log('当前环境是否是生产环境', isPord)
 module.exports =  {
   mode: process.env.NODE_ENV,
   entry: {
@@ -16,7 +20,7 @@ module.exports =  {
     path: resolve(__dirname, 'dist'),
     // 入口代码块的名称配置项
     filename: 'js/[name].[hash:10].js',
-    // 非入口代码块的名称配置项 非入口代码块的来源 1、代码分割 vendor common 2、懒加载 import方法加载
+    // 非入口代码块的名称配置项 非入口代码块的来源 1、代码分割 vendor(第三方模块) common( 公用模块) 2、懒加载 import方法加载
     chunkFilename: 'js/[name].[hash:10].js'
   },
   devServer: {
@@ -82,15 +86,27 @@ module.exports =  {
         use: [
           MiniCssExtractPlugin.loader,
           // 'style-loader',
-          'css-loader']
+          'css-loader',
+          'postcss-loader',
+          {
+            loader: 'px2rem-loader',
+            options: {
+              remUnit: 75
+            }
+          }
+        ]
       },
       {
         test: /\.(png|jpg|jpeg)$/i,
         use: [{
-          loader: 'file-loader',
+          loader: 'url-loader',
           options: {
-            name: 'images/[hash:10].[ext]',
-            esModule: false
+            name: '[name].[hash:10].[ext]',
+            limit: 32 * 1024,
+            esModule: false,
+            outputPath: 'images',
+            // 注意 这里一定要加 "/" 加上 "/" 是相对于根路径 不加 "/" 是相对图片所在的当前文件路径
+            publicPath: '/images'
           }
         }],
         // type: 'javascript/auto'
@@ -101,7 +117,15 @@ module.exports =  {
       },
     ]
   },
-  devtool: 'cheap-module-source-map',
+  optimization: {
+    minimizer: isPord ? [
+      new CssMinimizerPlugin(),  // 这里的配置只能值生产环境压缩
+      new TerserPlugin() // Works only with source-map, inline-source-map, hidden-source-map and nosources-source-map values for the devtool option.
+    ] : [],
+    minimize: isPord ? true : false, // 需要在开发环境进行压缩 使用这个选项
+  },
+  // devtool: 'cheap-module-source-map',
+  devtool: isPord ? 'nosources-source-map' :'cheap-module-source-map',
   plugins: [
     new MiniCssExtractPlugin({ // 现将所有的css文件进行收集起来 再在plugin中对css 进行分开生成文件并将资源
       filename: 'css/[name]-[contenthash:8].css'
@@ -117,6 +141,11 @@ module.exports =  {
       template: './src/index.html',
       chunks: ['main'],
       filename:'index.html',
+      minify: {
+        collapseWhitespace: true,
+        removeComments: true,
+        removeAttributeQuotes: true
+      }
     }),
     new HtmlWebpackExternalsPlugin({
       externals: [

@@ -130,4 +130,39 @@
 
 - webpack在打包的之后会将所有生成的资源放到一个assets对象上(通过插件emitFile方法添加) 而此插件会遍历上面的文件将上面的文件全部插入到html中 由此来实现。
 
+## import()函数是天然的代码分割点。只要遇到import就会分离出一个单独的代码块
+
+## hash、chunkHash、contentHash 的区别
+
+- contentHash 根据文件内容生成的hash只有当文件的内容发生变化hash才会发生变化
+- chunkHash 根据chunk中包含的所有文件模块算出的hash值 当所包含的一个文件变化 所生成的hash就会发生变化
+- hansh 每次打包webpack会生成相应的hash 是由所有的代码块计算出来的hash 其中一个文件发生改变hash就会发生改变
+
+## 一个代码可产生多个文件 main main.js main.css 可以chunk里面的文件那么多 到底取哪一个文件的contentHash作为最终的assets文件名呢？
+
+- assets和文件是一对一的
+- main代码块会产出两个assets main.js和main.css
+- main.js main.css会生成两个文件 每个文件都有自己contentHash
+
+## mode 两种取值的区别
+
+- production: 会将代码中的process.env.NODE_ENV的值设为production. 默认会启用各种性能优化 压缩js css treeSharking 还包括对构建结果的优化以及webpack运行性能。
+- development: 会将代码中的process.env.NODE_ENV的值设为development.则会开启debug工具 运行时打印详细信息以及更加快速的增量编译构建。
+
+## sideEffects 副作用配置怎么用?
+
+- tree-shaking在webpack5中功能变得更加的强大了，但是会存在一个问题就是会把本来不改优化的进行优化掉。这是我们就要使用sideEffects告知他那些事是不用优化的 比如css。写法如下
+
+```json
+// package.json
+sideEffects: ['**/*.css']
+```
+
+## px自动转rem
+
+- lib-flexible + rem 实现移动端自适应
+- px2rem-loader自动实现将px转为rem
+- px2rem
+- 页面渲染的时候计算根元素的font-size的值
+
 ## 生成环境配置和优化

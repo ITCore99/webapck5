@@ -1,6 +1,7 @@
 // import _ from 'lodash'
 // import $ from 'jquery';
 import './index.css'; 
+import './layout.css'
 const mmz = require('./images/1.jpeg')
 const mmz2 = require('./asset/resource/1.jpeg')
 const title = require('../doc/test.txt')
@@ -33,3 +34,7 @@ console.log('DEVELOPMENT==>', typeof DEVELOPMENT)
 // eslint-disable-next-line
 console.log('DEVELOPMENT==>',  EXPRESS)
 console.log(eval('1+3'))
+import('./utils/index.js')
+  .then(res => {
+    console.log('utils 文件import加载', res)
+  })
